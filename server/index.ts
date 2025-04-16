@@ -1,6 +1,11 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+
+const isDev = process.env.NODE_ENV === 'development';
+let setupVite, serveStatic, log;
+if (isDev) {
+  ({ setupVite, serveStatic, log } = await import("./vite"));
+}
 
 const app = express();
 app.use(express.json());
