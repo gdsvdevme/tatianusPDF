@@ -12,50 +12,12 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  let headers: HeadersInit = {};
-  let body: any = undefined;
-  
-  if (data) {
-    if (data instanceof FormData) {
-      // Para FormData, não definimos Content-Type para permitir que o navegador
-      // defina automaticamente com o boundary correto
-      body = data;
-      console.log('Enviando FormData com arquivos:', 
-        Array.from(data.entries()).map(([key, value]) => {
-          if (value instanceof File) {
-            return `${key}: File(${value.name}, ${value.size} bytes, ${value.type})`;
-          }
-          return `${key}: ${String(value).substring(0, 50)}${String(value).length > 50 ? '...' : ''}`;
-        })
-      );
-    } else {
-      headers = { "Content-Type": "application/json" };
-      body = JSON.stringify(data);
-      console.log('Enviando JSON:', body);
-    }
-  }
-  
-  console.log(`Fazendo requisição ${method} para ${url}`);
-
   const res = await fetch(url, {
     method,
-    headers,
-    body,
+    headers: data ? { "Content-Type": "application/json" } : {},
+    body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
-
-  console.log(`Resposta recebida: ${res.status} ${res.statusText}`);
-  
-  // Para debugging, logamos uma cópia da resposta
-  if (!res.ok) {
-    try {
-      const resClone = res.clone();
-      const text = await resClone.text();
-      console.error(`Erro na requisição: ${res.status} - ${text}`);
-    } catch (e) {
-      console.error('Não foi possível ler corpo da resposta de erro');
-    }
-  }
 
   await throwIfResNotOk(res);
   return res;
